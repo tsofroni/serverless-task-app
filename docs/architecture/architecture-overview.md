@@ -24,7 +24,7 @@ This project uses a fully serverless architecture on AWS.
 - API Gateway verifies token
 - Lambda receives user identity from claims
 
-(Screenshot: erfolgreicher Request mit Authorization Header)
+[Successful Request with Authorization Header](screenshots/postman/postman-create-task-success.png)
 
 ---
 
@@ -57,4 +57,4 @@ Handles authentication and user management.
 - Logs available in CloudWatch
 - Errors and requests can be traced
 
-(Screenshot: CloudWatch Logs)
+[CloudWatch Logs](screenshots/logs/cloudwatch-api-logs)

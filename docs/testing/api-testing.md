@@ -10,7 +10,7 @@ The API was tested using Postman.
 
 POST /tasks
 
-(Screenshot: erfolgreicher POST Request + Response)
+[Successful POST Request](screenshots/postman/postman-create-task-success.png)
 
 ---
 
@@ -18,7 +18,7 @@ POST /tasks
 
 GET /tasks
 
-(Screenshot: erfolgreicher GET Request)
+[Successful GET Request](screenshots/postman/postman-get-task-success.png)
 
 ---
 
@@ -26,7 +26,7 @@ GET /tasks
 
 GET /tasks/{taskId}
 
-(Screenshot: erfolgreicher GET by ID)
+[Successful GET by ID Request](screenshots/postman/postman-get-task-by-id-success.png)
 
 ---
 
@@ -34,7 +34,7 @@ GET /tasks/{taskId}
 
 PUT /tasks/{taskId}
 
-(Screenshot: erfolgreicher PUT Request)
+[Successful PUT Request](screenshots/postman/postman-update-task-success.png)
 
 ---
 
@@ -42,7 +42,7 @@ PUT /tasks/{taskId}
 
 DELETE /tasks/{taskId}
 
-(Screenshot: erfolgreicher DELETE Request)
+[Successful DELETE Request](screenshots/postman/postman-delete-task-success.png)
 
 ---
 
@@ -52,7 +52,7 @@ DELETE /tasks/{taskId}
 
 Expected: 401 Unauthorized
 
-(Screenshot: expired token Fehler)
+[Expired Token Error](screenshots/postman/postman-expired-token-error.png)
 
 ---
 
@@ -60,7 +60,7 @@ Expected: 401 Unauthorized
 
 Expected: 404 Not Found
 
-(Screenshot: 404 Fehler nach Delete)
+[Task not found Error](screenshots/postman/postman-task-not-found-error.png)
 
 ---
 
@@ -68,7 +68,7 @@ Expected: 404 Not Found
 
 Expected: 400 Bad Request
 
-(Screenshot: invalid JSON oder fehlendes Feld)
+[Invalid JSON](screenshots/postman/postman-create-task-validation-error.png)
 
 ---
 

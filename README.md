@@ -63,7 +63,7 @@ This token must be included in every request:
 
 Authorization: Bearer <token>
 
-(Screenshot: Postman Request mit Authorization Header)
+[Request with Authorization Header](screenshots/postman/postman-create-task-success.png)
 
 ---
 
@@ -105,9 +105,9 @@ Test cases include:
 - deleted task (404)
 - invalid input
 
-(Screenshot: erfolgreicher POST /tasks Request)
-(Screenshot: 401 Unauthorized mit expired token)
-(Screenshot: 404 Task not found)
+[Successful POST Request](screenshots/postman/postman-update-task-success)
+[401 Unauthorized - expired token](screenshots/postman/postman-expired-token-error)
+[404 Not Found - Task not found](screenshots/postman/postman-task-not-found-error)
 
 ---
 

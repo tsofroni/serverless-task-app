@@ -21,7 +21,7 @@ Only authenticated users can access the API.
 - API Gateway validates token using Cognito Authorizer
 - Lambda extracts userId from token (sub claim)
 
-(Screenshot: Cognito User Pool Overview)
+[Cognito User Pool Overview](screenshots/auth/cognito-user-pool-overview.png)
 
 ---
 
@@ -74,7 +74,7 @@ The API returns:
 - 404 → resource not found
 - 500 → internal error
 
-(Screenshot: 404 Task not found in Postman)
+[404 Task not found](screenshots/postman/postman-not-found-error.png)
 
 ---
 
@@ -86,4 +86,4 @@ Tested via Postman with:
 - expired token → 401
 - deleted task → 404
 
-(Screenshot: erfolgreicher GET /tasks)
+[Erfolgreicher GET /tasks](screenshots/postman/postman-get-task-success.png)

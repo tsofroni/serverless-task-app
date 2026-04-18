@@ -6,10 +6,14 @@ import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
 import StatusMessage from "./components/StatusMessage";
 import { createTask, deleteTask, fetchTasks, updateTask } from "./services/api";
+import { exchangeCodeForToken } from "./services/auth";
 import {
-  clearUrlHash,
+  clearAuthParamsFromUrl,
+  getCodeFromUrl,
+  getStoredCodeVerifier,
   getStoredToken,
-  getTokenFromUrl,
+  removeStoredCodeVerifier,
+  removeToken,
   saveToken,
 } from "./utils/token";
 
@@ -19,21 +23,49 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("info");
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    const tokenFromUrl = getTokenFromUrl();
+    async function initializeAuth() {
+      try {
+        const code = getCodeFromUrl();
 
-    if (tokenFromUrl) {
-      saveToken(tokenFromUrl);
-      setToken(tokenFromUrl);
-      clearUrlHash();
-      return;
+        if (code) {
+          const codeVerifier = getStoredCodeVerifier();
+
+          if (!codeVerifier) {
+            throw new Error("PKCE code verifier missing. Please log in again.");
+          }
+
+          const tokenResponse = await exchangeCodeForToken(code, codeVerifier);
+          const idToken = tokenResponse.id_token;
+
+          if (!idToken) {
+            throw new Error("No id_token returned from Cognito.");
+          }
+
+          saveToken(idToken);
+          setToken(idToken);
+          removeStoredCodeVerifier();
+          clearAuthParamsFromUrl();
+          return;
+        }
+
+        const storedToken = getStoredToken();
+        if (storedToken) {
+          setToken(storedToken);
+        }
+      } catch (error) {
+        removeToken();
+        removeStoredCodeVerifier();
+        setMessage(error.message);
+        setMessageType("error");
+      } finally {
+        setAuthLoading(false);
+      }
     }
 
-    const storedToken = getStoredToken();
-    if (storedToken) {
-      setToken(storedToken);
-    }
+    initializeAuth();
   }, []);
 
   useEffect(() => {
@@ -50,6 +82,16 @@ export default function App() {
       setTasks(data.items || []);
     } catch (error) {
       setMessage(error.message);
+
+      if (
+        error.message.toLowerCase().includes("expired") ||
+        error.message.toLowerCase().includes("unauthorized") ||
+        error.message.toLowerCase().includes("forbidden")
+      ) {
+        removeToken();
+        setToken(null);
+      }
+
       setMessageType("error");
     } finally {
       setLoading(false);
@@ -95,7 +137,7 @@ export default function App() {
     setMessage("");
 
     try {
-      await updatedTask(token, taskId, updatedTask);
+      await updateTask(token, taskId, updatedTask);
       setMessage("Task updated successfully.");
       setMessageType("success");
       await loadTasks();
@@ -107,33 +149,42 @@ export default function App() {
     }
   }
 
+  if (authLoading) {
+    return (
+      <div className="app-container">
+        <Header />
+        <StatusMessage message="Checking login status..." type="info" />
+      </div>
+    );
+  }
+
   return (
-    <div className = "app-container">
+    <div className="app-container">
       <Header />
 
       {!token ? (
-        <section className = "auth-section">
+        <section className="auth-section">
           <p>Please log in to manage your tasks.</p>
           <LoginButton />
         </section>
       ) : (
         <>
-          <div className = "top-actions">
+          <div className="top-actions">
             <LogoutButton />
           </div>
-          
-          <StatusMessage message = {message} type = {messageType} />
-          
-          <div className = "dashboard-layout">
-            <TaskForm onCreate = {handleCreateTask} loading={loading} />
+
+          <StatusMessage message={message} type={messageType} />
+
+          <div className="dashboard-layout">
+            <TaskForm onCreate={handleCreateTask} loading={loading} />
             <TaskList
-              tasks = {tasks}
+              tasks={tasks}
               onDelete={handleDeleteTask}
               onStatusChange={handleStatusChange}
               loading={loading}
-              />
-            </div>
-          </>
+            />
+          </div>
+        </>
       )}
     </div>
   );

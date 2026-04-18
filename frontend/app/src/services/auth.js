@@ -27,14 +27,6 @@ export function buildLogoutUrl() {
   );
 }
 
-export function buildLogoutUrl() {
-  return (
-    `${VITE_COGNITO_DOMAIN}/logout` +
-    `?client_id=${encodeURIComponent(VITE_COGNITO_CLIENT_ID)}` +
-    `&logout_uri=${encodeURIComponent(VITE_COGNITO_LOGOUT_URI)}`
-  );
-}
-
 export function login() {
   window.location.href = buildLoginUrl();
 }

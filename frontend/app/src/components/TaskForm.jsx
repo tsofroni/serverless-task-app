@@ -20,7 +20,7 @@ export default function TaskForm({ onCreate, loading }) {
     }
 
     return (
-        <from className = "task-form" onSubmit  ={handleSubmit}>
+        <form className = "task-form" onSubmit  ={handleSubmit}>
             <h2>Create Task</h2>
 
             <label>
@@ -32,6 +32,15 @@ export default function TaskForm({ onCreate, loading }) {
                     placeholder = "Enter task title"
                     required
                 /> 
+            </label>
+
+            <label>
+                Description
+                <textarea
+                    value = {description}
+                    onChange = {(event) => setDescription(event.target.value)}
+                    placeholder = "Enter task description"
+                />
             </label>
 
             <label>
@@ -49,6 +58,6 @@ export default function TaskForm({ onCreate, loading }) {
             <button className = "button primary" type = "submit" disabled = {loading}>
                 {loading ? "Creating..." : "Create Task"}
             </button>
-        </from>
+        </form>
     );
 }

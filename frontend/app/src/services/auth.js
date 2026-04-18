@@ -33,6 +33,7 @@ export async function buildLoginUrl() {
 
 export async function login() {
   const loginUrl = await buildLoginUrl();
+  console.log("Cognito login URL:", loginUrl);
   window.location.href = loginUrl;
 }
 

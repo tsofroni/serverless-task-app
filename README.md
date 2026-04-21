@@ -19,6 +19,37 @@ All operations are protected using token-based authentication.
 
 ---
 
+## Frontend & Authentication
+
+This project includes a React-based frontend that interacts with a secured serverless backend.
+
+### Key Features
+
+- React application built with Vite
+- Authentication via Amazon Cognito Hosted UI
+- OAuth 2.0 Authorization Code Flow
+- Secure API calls using JWT access tokens
+- Task management UI (create, update, delete tasks)
+
+### Authentication Flow
+
+1. User clicks "Login with Cognito"
+2. Redirect to Cognito Hosted UI
+3. User authenticates
+4. Cognito redirects back with authorization code
+5. Frontend exchanges code for tokens
+6. Access token is used for API requests
+
+### Architecture Components
+
+- Amazon Cognito (User Pool + Hosted UI)
+- API Gateway (protected endpoints)
+- AWS Lambda (business logic)
+- DynamoDB (data storage)
+- React Frontend (client-side app)
+
+---
+
 ## 🏗️ Architecture
 
 High-level flow:

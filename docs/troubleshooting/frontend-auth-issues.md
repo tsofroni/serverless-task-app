@@ -123,6 +123,10 @@ Corrected HTML tag.
 - API not reachable
 - missing Authorization header
 
+### Screenshot
+
+[CORS Error](../screenshots/errors/frontend-cors-error.png)
+
 ### Fix
 
 Resolved after fixing CORS configuration.

@@ -1,32 +1,47 @@
-import { DragDropContext } from "@hello-pangea/dnd";
 import Column from "./Column";
 
+const STATUSES = ["OPEN", "IN_PROGRESS", "DONE"];
+
 export default function KanbanBoard({ tasks, onUpdate }) {
-    const columns = {
-        OPEN: tasks.filter(t => t.status === "OPEN"),
-        IN_PROGRESS: tasks.filter(t => t.status === "IN_PROGRESS"),
-        DONE: tasks.filter(t => t.status === "DONE"),
-    };
+  const columns = {
+    OPEN: tasks.filter((task) => task.status === "OPEN"),
+    IN_PROGRESS: tasks.filter((task) => task.status === "IN_PROGRESS"),
+    DONE: tasks.filter((task) => task.status === "DONE"),
+  };
 
-    function handleDragEnd(result) {
-        const { destination, source, draggableId } = result;
+  function handleDrop(event, newStatus) {
+    event.preventDefault();
 
-        if (!destination) return;
+    const taskId = event.dataTransfer.getData("taskId");
+    const currentStatus = event.dataTransfer.getData("currentStatus");
 
-        const newStatus = destination.droppableId;
+    if (!taskId || currentStatus === newStatus) return;
 
-        if (source.droppableId === destination.droppableId) return;
+    const task = tasks.find((item) => item.taskId === taskId);
+    if (!task) return;
 
-        onUpdate(draggableId, { status: newStatus });
-    }
+    onUpdate(taskId, {
+      title: task.title,
+      description: task.description,
+      status: newStatus,
+    });
+  }
 
-    return (
-        <DragDropContext onDragEnd={handleDragEnd}>
-            <div className="kanban-board">
-                {Object.keys(columns).map((status) => (
-                    <Column key={status} status={status} tasks={columns[status]} />
-                ))}
-            </div>
-        </DragDropContext>
-    );
+  function allowDrop(event) {
+    event.preventDefault();
+  }
+
+  return (
+    <section className="kanban-board">
+      {STATUSES.map((status) => (
+        <Column
+          key={status}
+          status={status}
+          tasks={columns[status]}
+          onDrop={handleDrop}
+          onDragOver={allowDrop}
+        />
+      ))}
+    </section>
+  );
 }

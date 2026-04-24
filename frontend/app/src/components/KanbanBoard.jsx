@@ -40,6 +40,9 @@ export default function KanbanBoard({ tasks, onUpdate }) {
           tasks={columns[status]}
           onDrop={handleDrop}
           onDragOver={allowDrop}
+          onUpdate={onUpdate}
+          onDelete={onDelete}
+          loading={loading}
         />
       ))}
     </section>

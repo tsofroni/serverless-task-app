@@ -197,6 +197,8 @@ export default function App() {
             <KanbanBoard
               tasks={tasks}
               onUpdate={handleUpdateTask}
+              onDelete={handleDeleteTask}
+              loading={loading}
             />
           </div>
         </>

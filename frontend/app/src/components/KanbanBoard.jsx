@@ -1,5 +1,5 @@
 import { DragDropContext } from "@hello-pangea/dnd";
-import Column from ".Column";
+import Column from "./Column";
 
 export default function KanbanBoard({ tasks, onUpdate }) {
     const columns = {

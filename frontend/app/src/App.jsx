@@ -4,7 +4,6 @@ import Header from "./components/Header";
 import LoginButton from "./components/LoginButton";
 import LogoutButton from "./components/LogoutButton";
 import TaskForm from "./components/TaskForm";
-import TaskList from "./components/TaskList";
 import StatusMessage from "./components/StatusMessage";
 import { createTask, deleteTask, fetchTasks, updateTask } from "./services/api";
 import { exchangeCodeForToken } from "./services/auth";
@@ -119,6 +118,18 @@ export default function App() {
   async function handleUpdateTask(taskId, updates) {
     await updateTask(token, taskId, updates);
     await loadTasks();
+
+    try {
+      await updateTask(token, taskId, updates);
+      setMessage("Task updated successfully.");
+      setMessageType("success");
+      await loadTasks();
+    } catch (error) {
+      setMessage(error.message);
+      setMessageType("error");
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleDeleteTask(taskId) {
@@ -185,9 +196,7 @@ export default function App() {
             <TaskForm onCreate={handleCreateTask} loading={loading} />
             <KanbanBoard
               tasks={tasks}
-              onDelete={handleDeleteTask}
-              onStatusChange={handleStatusChange}
-              loading={loading}
+              onUpdate={handleUpdateTask}
             />
           </div>
         </>

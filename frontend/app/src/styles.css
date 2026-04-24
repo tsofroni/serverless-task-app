@@ -440,3 +440,15 @@ body {
     transform: translateY(0) scale(1);
   }
 }
+
+.jira-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.85rem;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 10px;
+  color: #475569;
+  font-size: 0.85rem;
+}

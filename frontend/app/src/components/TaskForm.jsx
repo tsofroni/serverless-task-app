@@ -1,63 +1,89 @@
 import { useState } from "react";
 
 export default function TaskForm({ onCreate, loading }) {
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [status, setStatus] = useState("OPEN");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [status, setStatus] = useState("OPEN");
+  const [assignee, setAssignee] = useState("");
+  const [reporter, setReporter] = useState("Me");
 
-    async function handleSubmit(event) {
-        event.preventDefault();
+  async function handleSubmit(event) {
+    event.preventDefault();
 
-        await onCreate({
-            title,
-            description,
-            status,
-        });
+    await onCreate({
+      title,
+      description,
+      status,
+      assignee,
+      reporter,
+    });
 
-        setTitle("");
-        setDescription("");
-        setStatus("OPEN");
-    }
+    setTitle("");
+    setDescription("");
+    setStatus("OPEN");
+    setAssignee("");
+    setReporter("Me");
+  }
 
-    return (
-        <form className = "task-form" onSubmit  ={handleSubmit}>
-            <h2>Create Task</h2>
+  return (
+    <form className="task-form" onSubmit={handleSubmit}>
+      <h2>Create Task</h2>
 
-            <label>
-                Title
-                <input
-                    type = "text"
-                    value = {title}
-                    onChange = {(event) => setTitle(event.target.value)}
-                    placeholder = "Enter task title"
-                    required
-                /> 
-            </label>
+      <label>
+        Title
+        <input
+          type="text"
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
+          placeholder="Enter task title"
+          required
+        />
+      </label>
 
-            <label>
-                Description
-                <textarea
-                    value = {description}
-                    onChange = {(event) => setDescription(event.target.value)}
-                    placeholder = "Enter task description"
-                />
-            </label>
+      <label>
+        Description
+        <textarea
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+          placeholder="Enter task description"
+        />
+      </label>
 
-            <label>
-                Status
-                <select
-                    value = {status}
-                    onChange = {(event) => setStatus(event.target.value)}
-                >
-                    <option value = "OPEN">OPEN</option>
-                    <option value = "IN_PROGRESS">IN_PROGRESS</option>
-                    <option value = "DONE">DONE</option>
-                </select>
-            </label>
+      <label>
+        Assignee
+        <input
+          type="text"
+          value={assignee}
+          onChange={(event) => setAssignee(event.target.value)}
+          placeholder="Assign to..."
+        />
+      </label>
 
-            <button className = "button primary" type = "submit" disabled = {loading}>
-                {loading ? "Creating..." : "Create Task"}
-            </button>
-        </form>
-    );
+      <label>
+        Reporter
+        <input
+          type="text"
+          value={reporter}
+          onChange={(event) => setReporter(event.target.value)}
+          placeholder="Reporter"
+        />
+      </label>
+
+      <label>
+        Status
+        <select
+          value={status}
+          onChange={(event) => setStatus(event.target.value)}
+        >
+          <option value="OPEN">OPEN</option>
+          <option value="IN_PROGRESS">IN_PROGRESS</option>
+          <option value="DONE">DONE</option>
+        </select>
+      </label>
+
+      <button className="button primary" type="submit" disabled={loading}>
+        {loading ? "Creating..." : "Create Task"}
+      </button>
+    </form>
+  );
 }

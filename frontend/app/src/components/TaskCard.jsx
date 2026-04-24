@@ -6,6 +6,8 @@ export default function TaskCard({ task, onUpdate, onDelete, loading }) {
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description || "");
   const [status, setStatus] = useState(task.status);
+  const [assignee, setAssignee] = useState(task.assignee || "");
+  const [reporter, setReporter] = useState(task.reporter || "Me");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   function handleDragStart(event) {
@@ -23,6 +25,8 @@ export default function TaskCard({ task, onUpdate, onDelete, loading }) {
       title,
       description,
       status,
+      assignee,
+      reporter,
     });
 
     setIsEditing(false);
@@ -32,6 +36,8 @@ export default function TaskCard({ task, onUpdate, onDelete, loading }) {
     setTitle(task.title);
     setDescription(task.description || "");
     setStatus(task.status);
+    setAssignee(task.assignee || "");
+    setReporter(task.reporter || "Me");
     setIsEditing(false);
   }
 
@@ -58,6 +64,26 @@ export default function TaskCard({ task, onUpdate, onDelete, loading }) {
             className="card-textarea"
             value={description}
             onChange={(event) => setDescription(event.target.value)}
+          />
+        </label>
+
+        <label>
+          Assignee
+          <input
+            className="card-input"
+            value={assignee}
+            onChange={(event) => setAssignee(event.target.value)}
+            placeholder="Assign to..."
+          />
+        </label>
+
+        <label>
+          Reporter
+          <input
+            className="card-input"
+            value={reporter}
+            onChange={(event) => setReporter(event.target.value)}
+            placeholder="Reporter"
           />
         </label>
 
@@ -111,6 +137,11 @@ export default function TaskCard({ task, onUpdate, onDelete, loading }) {
         </div>
 
         <p>{task.description || "No description provided."}</p>
+
+        <div className="jira-meta">
+          <span>👤 Assignee: {task.assignee || "Unassigned"}</span>
+          <span>📝 Reporter: {task.reporter || "Unknown"}</span>
+        </div>
 
         <div className="kanban-card-meta">
           <small>Created: {formatDate(task.createdAt)}</small>

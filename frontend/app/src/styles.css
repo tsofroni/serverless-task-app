@@ -340,3 +340,103 @@ body {
   background: #dcfce7;
   color: #166534;
 }
+
+.button {
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.16);
+}
+
+.button.primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.button.secondary:hover:not(:disabled) {
+  background: #1f2937;
+}
+
+.button.danger:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.button:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 3px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  border-radius: 18px;
+  padding: 1.5rem;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.35);
+  animation: modal-pop 0.18s ease-out;
+}
+
+.modal-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.modal-icon.danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.modal-card h2 {
+  margin: 0 0 0.5rem;
+}
+
+.modal-card p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+@keyframes modal-pop {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

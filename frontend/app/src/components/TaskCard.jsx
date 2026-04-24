@@ -1,10 +1,12 @@
 import { useState } from "react";
+import ConfirmModal from "./ConfirmModal";
 
 export default function TaskCard({ task, onUpdate, onDelete, loading }) {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description || "");
   const [status, setStatus] = useState(task.status);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   function handleDragStart(event) {
     if (isEditing) {
@@ -34,13 +36,8 @@ export default function TaskCard({ task, onUpdate, onDelete, loading }) {
   }
 
   async function handleDelete() {
-    const confirmed = window.confirm(
-      `Delete task "${task.title}"? This action cannot be undone.`
-    );
-
-    if (!confirmed) return;
-
     await onDelete(task.taskId);
+    setShowDeleteModal(false);
   }
 
   if (isEditing) {
@@ -99,44 +96,58 @@ export default function TaskCard({ task, onUpdate, onDelete, loading }) {
   }
 
   return (
-    <article
-      className="kanban-card"
-      draggable
-      onDragStart={handleDragStart}
-      onDoubleClick={() => setIsEditing(true)}
-    >
-      <div className="kanban-card-header">
-        <h3>{task.title}</h3>
-        <span className={`task-status ${task.status.toLowerCase()}`}>
-          {task.status}
-        </span>
-      </div>
+    <>
+      <article
+        className="kanban-card"
+        draggable
+        onDragStart={handleDragStart}
+        onDoubleClick={() => setIsEditing(true)}
+      >
+        <div className="kanban-card-header">
+          <h3>{task.title}</h3>
+          <span className={`task-status ${task.status.toLowerCase()}`}>
+            {task.status}
+          </span>
+        </div>
 
-      <p>{task.description || "No description provided."}</p>
+        <p>{task.description || "No description provided."}</p>
 
-      <div className="kanban-card-meta">
-        <small>Created: {formatDate(task.createdAt)}</small>
-        <small>Updated: {formatDate(task.updatedAt)}</small>
-      </div>
+        <div className="kanban-card-meta">
+          <small>Created: {formatDate(task.createdAt)}</small>
+          <small>Updated: {formatDate(task.updatedAt)}</small>
+        </div>
 
-      <div className="card-actions">
-        <button
-          className="button secondary small"
-          onClick={() => setIsEditing(true)}
-          disabled={loading}
-        >
-          Edit
-        </button>
+        <div className="card-actions">
+          <button
+            className="button secondary small"
+            onClick={() => setIsEditing(true)}
+            disabled={loading}
+          >
+            Edit
+          </button>
 
-        <button
-          className="button danger small"
-          onClick={handleDelete}
-          disabled={loading}
-        >
-          Delete
-        </button>
-      </div>
-    </article>
+          <button
+            className="button danger small"
+            onClick={() => setShowDeleteModal(true)}
+            disabled={loading}
+          >
+            Delete
+          </button>
+        </div>
+      </article>
+
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Delete task?"
+        message={`Are you sure you want to delete "${task.title}"? This action cannot be undone.`}
+        confirmText="Delete task"
+        cancelText="Keep task"
+        variant="danger"
+        loading={loading}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteModal(false)}
+      />
+    </>
   );
 }
 

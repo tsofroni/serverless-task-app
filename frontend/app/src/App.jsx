@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import KanbanBoard from "./components/KanbanBoard";
 import Header from "./components/Header";
 import LoginButton from "./components/LoginButton";
 import LogoutButton from "./components/LogoutButton";
@@ -115,6 +116,11 @@ export default function App() {
     }
   }
 
+  async function handleUpdateTask(taskId, updates) {
+    await updateTask(token, taskId, updates);
+    await loadTasks();
+  }
+
   async function handleDeleteTask(taskId) {
     setLoading(true);
     setMessage("");
@@ -177,7 +183,7 @@ export default function App() {
 
           <div className="dashboard-layout">
             <TaskForm onCreate={handleCreateTask} loading={loading} />
-            <TaskList
+            <KanbanBoard
               tasks={tasks}
               onDelete={handleDeleteTask}
               onStatusChange={handleStatusChange}

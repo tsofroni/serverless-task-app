@@ -2,7 +2,7 @@ import Column from "./Column";
 
 const STATUSES = ["OPEN", "IN_PROGRESS", "DONE"];
 
-export default function KanbanBoard({ tasks, onUpdate }) {
+export default function KanbanBoard({ tasks, onUpdate, onDelete, loading }) {
   const columns = {
     OPEN: tasks.filter((task) => task.status === "OPEN"),
     IN_PROGRESS: tasks.filter((task) => task.status === "IN_PROGRESS"),

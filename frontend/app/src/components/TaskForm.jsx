@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import UserAutocomplete from "./UserAutocomplete";
 
 export default function TaskForm({ onCreate, loading, currentUser }) {
   const [title, setTitle] = useState("");
@@ -10,6 +11,7 @@ export default function TaskForm({ onCreate, loading, currentUser }) {
   );
   const [priority, setPriority] = useState("MEDIUM");
   const [dueDate, setDueDate] = useState("");
+  const [labelsText, setLabelsText] = useState("");
 
   useEffect(() => {
     setReporter(currentUser?.displayName || "Authenticated user");
@@ -26,6 +28,7 @@ export default function TaskForm({ onCreate, loading, currentUser }) {
       reporter,
       priority,
       dueDate,
+      labels: parseLabels(labelsText),
     });
 
     setTitle("");
@@ -35,6 +38,7 @@ export default function TaskForm({ onCreate, loading, currentUser }) {
     setReporter(currentUser?.displayName || "Authenticated user");
     setPriority("MEDIUM");
     setDueDate("");
+    setLabelsText("");
   }
 
   return (
@@ -61,20 +65,20 @@ export default function TaskForm({ onCreate, loading, currentUser }) {
         />
       </label>
 
-      <label>
-        Assignee
-        <input
-          type="text"
-          value={assignee}
-          onChange={(event) => setAssignee(event.target.value)}
-          placeholder="Assign to..."
-        />
-      </label>
+      <UserAutocomplete
+        label="Assignee"
+        value={assignee}
+        onChange={setAssignee}
+        placeholder="Assign to..."
+      />
 
-      <label>
-        Reporter
-        <input type="text" value={reporter} readOnly />
-      </label>
+      <UserAutocomplete
+        label="Reporter"
+        value={reporter}
+        onChange={setReporter}
+        placeholder="Reporter"
+        readOnly
+      />
 
       <label>
         Priority
@@ -98,6 +102,16 @@ export default function TaskForm({ onCreate, loading, currentUser }) {
       </label>
 
       <label>
+        Labels
+        <input
+          type="text"
+          value={labelsText}
+          onChange={(event) => setLabelsText(event.target.value)}
+          placeholder="frontend, bug, aws"
+        />
+      </label>
+
+      <label>
         Status
         <select
           value={status}
@@ -114,4 +128,11 @@ export default function TaskForm({ onCreate, loading, currentUser }) {
       </button>
     </form>
   );
+}
+
+function parseLabels(value) {
+  return value
+    .split(",")
+    .map((label) => label.trim())
+    .filter(Boolean);
 }

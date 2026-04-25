@@ -28,6 +28,7 @@ export default function KanbanBoard({ tasks, onUpdate, onDelete, loading }) {
       reporter: task.reporter || "Authenticated user",
       priority: task.priority || "MEDIUM",
       dueDate: task.dueDate || "",
+      labels: task.labels || [],
     });
   }
 

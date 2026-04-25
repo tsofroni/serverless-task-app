@@ -1,164 +1,60 @@
 import { useState } from "react";
 import ConfirmModal from "./ConfirmModal";
+import TaskDetailModal from "./TaskDetailModal";
 
 export default function TaskCard({ task, onUpdate, onDelete, loading }) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [title, setTitle] = useState(task.title);
-  const [description, setDescription] = useState(task.description || "");
-  const [status, setStatus] = useState(task.status);
-  const [assignee, setAssignee] = useState(task.assignee || "");
-  const [reporter, setReporter] = useState(
-    task.reporter || "Authenticated user"
-  );
-  const [priority, setPriority] = useState(task.priority || "MEDIUM");
-  const [dueDate, setDueDate] = useState(task.dueDate || "");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [formState, setFormState] = useState(getInitialFormState(task));
+
+  const isOverdue =
+    task.dueDate && new Date(task.dueDate) < startOfToday() && task.status !== "DONE";
 
   function handleDragStart(event) {
-    if (isEditing) {
-      event.preventDefault();
-      return;
-    }
-
     event.dataTransfer.setData("taskId", task.taskId);
     event.dataTransfer.setData("currentStatus", task.status);
   }
 
-  async function handleSave() {
-    await onUpdate(task.taskId, {
-      title,
-      description,
-      status,
-      assignee,
-      reporter,
-      priority,
-      dueDate,
-    });
-
-    setIsEditing(false);
+  function openDetails() {
+    setFormState(getInitialFormState(task));
+    setShowDetailModal(true);
   }
 
-  function handleCancel() {
-    setTitle(task.title);
-    setDescription(task.description || "");
-    setStatus(task.status);
-    setAssignee(task.assignee || "");
-    setReporter(task.reporter || "Authenticated user");
-    setPriority(task.priority || "MEDIUM");
-    setDueDate(task.dueDate || "");
-    setIsEditing(false);
+  function updateFormField(field, value) {
+    setFormState((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  }
+
+  async function handleSave() {
+    await onUpdate(task.taskId, {
+      title: formState.title,
+      description: formState.description,
+      status: formState.status,
+      assignee: formState.assignee,
+      reporter: formState.reporter,
+      priority: formState.priority,
+      dueDate: formState.dueDate,
+      labels: parseLabels(formState.labelsText),
+    });
+
+    setShowDetailModal(false);
   }
 
   async function handleDelete() {
     await onDelete(task.taskId);
     setShowDeleteModal(false);
-  }
-
-  if (isEditing) {
-    return (
-      <article className="kanban-card editing">
-        <label>
-          Title
-          <input
-            className="card-input"
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-          />
-        </label>
-
-        <label>
-          Description
-          <textarea
-            className="card-textarea"
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-          />
-        </label>
-
-        <label>
-          Assignee
-          <input
-            className="card-input"
-            value={assignee}
-            onChange={(event) => setAssignee(event.target.value)}
-            placeholder="Assign to..."
-          />
-        </label>
-
-        <label>
-          Reporter
-          <input
-            className="card-input"
-            value={reporter}
-            onChange={(event) => setReporter(event.target.value)}
-            placeholder="Reporter"
-          />
-        </label>
-
-        <label>
-          Priority
-          <select
-            className="card-input"
-            value={priority}
-            onChange={(event) => setPriority(event.target.value)}
-          >
-            <option value="LOW">LOW</option>
-            <option value="MEDIUM">MEDIUM</option>
-            <option value="HIGH">HIGH</option>
-          </select>
-        </label>
-
-        <label>
-          Due date
-          <input
-            className="card-input"
-            type="date"
-            value={dueDate}
-            onChange={(event) => setDueDate(event.target.value)}
-          />
-        </label>
-
-        <label>
-          Status
-          <select
-            className="card-input"
-            value={status}
-            onChange={(event) => setStatus(event.target.value)}
-          >
-            <option value="OPEN">OPEN</option>
-            <option value="IN_PROGRESS">IN_PROGRESS</option>
-            <option value="DONE">DONE</option>
-          </select>
-        </label>
-
-        <div className="card-actions">
-          <button
-            className="button primary small"
-            onClick={handleSave}
-            disabled={loading || !title.trim()}
-          >
-            Save
-          </button>
-
-          <button
-            className="button secondary small"
-            onClick={handleCancel}
-            disabled={loading}
-          >
-            Cancel
-          </button>
-        </div>
-      </article>
-    );
+    setShowDetailModal(false);
   }
 
   return (
     <>
       <article
-        className="kanban-card"
+        className={`kanban-card ${isOverdue ? "overdue-card" : ""}`}
         draggable
         onDragStart={handleDragStart}
-        onDoubleClick={() => setIsEditing(true)}
+        onClick={openDetails}
       >
         <div className="kanban-card-header">
           <h3>{task.title}</h3>
@@ -174,8 +70,22 @@ export default function TaskCard({ task, onUpdate, onDelete, loading }) {
             {task.priority || "MEDIUM"}
           </span>
 
-          {task.dueDate && <span className="due-date-badge">Due {task.dueDate}</span>}
+          {task.dueDate && (
+            <span className={`due-date-badge ${isOverdue ? "overdue" : ""}`}>
+              Due {task.dueDate}
+            </span>
+          )}
         </div>
+
+        {task.labels?.length > 0 && (
+          <div className="label-list">
+            {task.labels.map((label) => (
+              <span className="task-label" key={label}>
+                {label}
+              </span>
+            ))}
+          </div>
+        )}
 
         <div className="jira-meta">
           <span>👤 Assignee: {task.assignee || "Unassigned"}</span>
@@ -183,28 +93,20 @@ export default function TaskCard({ task, onUpdate, onDelete, loading }) {
         </div>
 
         <div className="kanban-card-meta">
-          <small>Created: {formatDate(task.createdAt)}</small>
           <small>Updated: {formatDate(task.updatedAt)}</small>
         </div>
-
-        <div className="card-actions">
-          <button
-            className="button secondary small"
-            onClick={() => setIsEditing(true)}
-            disabled={loading}
-          >
-            Edit
-          </button>
-
-          <button
-            className="button danger small"
-            onClick={() => setShowDeleteModal(true)}
-            disabled={loading}
-          >
-            Delete
-          </button>
-        </div>
       </article>
+
+      <TaskDetailModal
+        isOpen={showDetailModal}
+        task={task}
+        formState={formState}
+        onChange={updateFormField}
+        onSave={handleSave}
+        onClose={() => setShowDetailModal(false)}
+        onDelete={() => setShowDeleteModal(true)}
+        loading={loading}
+      />
 
       <ConfirmModal
         isOpen={showDeleteModal}
@@ -221,12 +123,37 @@ export default function TaskCard({ task, onUpdate, onDelete, loading }) {
   );
 }
 
+function getInitialFormState(task) {
+  return {
+    title: task.title || "",
+    description: task.description || "",
+    status: task.status || "OPEN",
+    assignee: task.assignee || "",
+    reporter: task.reporter || "Authenticated user",
+    priority: task.priority || "MEDIUM",
+    dueDate: task.dueDate || "",
+    labelsText: Array.isArray(task.labels) ? task.labels.join(", ") : "",
+  };
+}
+
+function parseLabels(value) {
+  return value
+    .split(",")
+    .map((label) => label.trim())
+    .filter(Boolean);
+}
+
 function formatDate(value) {
   if (!value) return "N/A";
-
   return new Date(value).toLocaleString();
 }
 
 function normalizePriority(priority) {
   return (priority || "MEDIUM").toLowerCase();
+}
+
+function startOfToday() {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  return date;
 }

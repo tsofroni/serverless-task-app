@@ -2,6 +2,7 @@ import json
 import os
 import uuid
 from datetime import datetime, timezone
+from decimal import Decimal
 
 import boto3
 from boto3.dynamodb.conditions import Key
@@ -9,6 +10,13 @@ from botocore.exceptions import ClientError
 
 dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(os.environ["TABLE_NAME"])
+
+
+def json_serializer(value):
+    if isinstance(value, Decimal):
+        return int(value) if value % 1 == 0 else float(value)
+
+    return str(value)
 
 
 def response(status_code, body):
@@ -20,7 +28,7 @@ def response(status_code, body):
             "Access-Control-Allow-Headers": "Content-Type,Authorization",
             "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
         },
-        "body": json.dumps(body),
+        "body": json.dumps(body, default=json_serializer),
     }
 
 
@@ -64,6 +72,16 @@ def validate_priority(priority):
     return priority in {"LOW", "MEDIUM", "HIGH"}
 
 
+def validate_labels(labels):
+    if labels is None:
+        return True
+
+    if not isinstance(labels, list):
+        return False
+
+    return all(isinstance(label, str) for label in labels)
+
+
 def validate_string_field(value, field_name, required=False):
     if required and (not value or not isinstance(value, str)):
         return f"{field_name} is required and must be a string"
@@ -74,34 +92,53 @@ def validate_string_field(value, field_name, required=False):
     return None
 
 
-def create_task(user_id, event):
-    data = parse_body(event)
+def normalize_task_input(data, existing=None):
+    existing = existing or {}
 
-    title = data.get("title")
-    description = data.get("description", "")
-    status = data.get("status", "OPEN")
-    assignee = data.get("assignee", "")
-    reporter = data.get("reporter", "Authenticated user")
-    priority = data.get("priority", "MEDIUM")
-    due_date = data.get("dueDate", "")
+    return {
+        "title": data.get("title", existing.get("title")),
+        "description": data.get("description", existing.get("description", "")),
+        "status": data.get("status", existing.get("status", "OPEN")),
+        "assignee": data.get("assignee", existing.get("assignee", "")),
+        "reporter": data.get("reporter", existing.get("reporter", "Authenticated user")),
+        "priority": data.get("priority", existing.get("priority", "MEDIUM")),
+        "dueDate": data.get("dueDate", existing.get("dueDate", "")),
+        "labels": data.get("labels", existing.get("labels", [])),
+    }
 
+
+def validate_task_fields(task):
     for error in [
-        validate_string_field(title, "title", required=True),
-        validate_string_field(description, "description"),
-        validate_string_field(status, "status", required=True),
-        validate_string_field(assignee, "assignee"),
-        validate_string_field(reporter, "reporter"),
-        validate_string_field(priority, "priority", required=True),
-        validate_string_field(due_date, "dueDate"),
+        validate_string_field(task["title"], "title", required=True),
+        validate_string_field(task["description"], "description"),
+        validate_string_field(task["status"], "status", required=True),
+        validate_string_field(task["assignee"], "assignee"),
+        validate_string_field(task["reporter"], "reporter"),
+        validate_string_field(task["priority"], "priority", required=True),
+        validate_string_field(task["dueDate"], "dueDate"),
     ]:
         if error:
-            return response(400, {"message": error})
+            return error
 
-    if not validate_status(status):
-        return response(400, {"message": "status must be one of OPEN, IN_PROGRESS, DONE"})
+    if not validate_status(task["status"]):
+        return "status must be one of OPEN, IN_PROGRESS, DONE"
 
-    if not validate_priority(priority):
-        return response(400, {"message": "priority must be one of LOW, MEDIUM, HIGH"})
+    if not validate_priority(task["priority"]):
+        return "priority must be one of LOW, MEDIUM, HIGH"
+
+    if not validate_labels(task["labels"]):
+        return "labels must be a list of strings"
+
+    return None
+
+
+def create_task(user_id, event):
+    data = parse_body(event)
+    task = normalize_task_input(data)
+
+    error = validate_task_fields(task)
+    if error:
+        return response(400, {"message": error})
 
     timestamp = now_iso()
     task_id = str(uuid.uuid4())
@@ -109,13 +146,7 @@ def create_task(user_id, event):
     item = {
         "userId": user_id,
         "taskId": task_id,
-        "title": title,
-        "description": description,
-        "status": status,
-        "assignee": assignee,
-        "reporter": reporter,
-        "priority": priority,
-        "dueDate": due_date,
+        **task,
         "createdAt": timestamp,
         "updatedAt": timestamp,
     }
@@ -164,42 +195,16 @@ def update_task(user_id, task_id, event):
     if not existing:
         return response(404, {"message": "Task not found"})
 
-    title = data.get("title", existing.get("title"))
-    description = data.get("description", existing.get("description", ""))
-    status = data.get("status", existing.get("status", "OPEN"))
-    assignee = data.get("assignee", existing.get("assignee", ""))
-    reporter = data.get("reporter", existing.get("reporter", "Authenticated user"))
-    priority = data.get("priority", existing.get("priority", "MEDIUM"))
-    due_date = data.get("dueDate", existing.get("dueDate", ""))
+    task = normalize_task_input(data, existing)
 
-    for error in [
-        validate_string_field(title, "title", required=True),
-        validate_string_field(description, "description"),
-        validate_string_field(status, "status", required=True),
-        validate_string_field(assignee, "assignee"),
-        validate_string_field(reporter, "reporter"),
-        validate_string_field(priority, "priority", required=True),
-        validate_string_field(due_date, "dueDate"),
-    ]:
-        if error:
-            return response(400, {"message": error})
-
-    if not validate_status(status):
-        return response(400, {"message": "status must be one of OPEN, IN_PROGRESS, DONE"})
-
-    if not validate_priority(priority):
-        return response(400, {"message": "priority must be one of LOW, MEDIUM, HIGH"})
+    error = validate_task_fields(task)
+    if error:
+        return response(400, {"message": error})
 
     updated_item = {
         "userId": user_id,
         "taskId": task_id,
-        "title": title,
-        "description": description,
-        "status": status,
-        "assignee": assignee,
-        "reporter": reporter,
-        "priority": priority,
-        "dueDate": due_date,
+        **task,
         "createdAt": existing["createdAt"],
         "updatedAt": now_iso(),
     }

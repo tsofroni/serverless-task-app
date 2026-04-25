@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Header from "./components/Header";
 import LoginButton from "./components/LoginButton";
 import LogoutButton from "./components/LogoutButton";
 import TaskForm from "./components/TaskForm";
 import KanbanBoard from "./components/KanbanBoard";
 import ToastContainer from "./components/ToastContainer";
+import BoardControls from "./components/BoardControls";
 import { createTask, deleteTask, fetchTasks, updateTask } from "./services/api";
 import { exchangeCodeForToken } from "./services/auth";
 import {
@@ -25,6 +26,39 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [toasts, setToasts] = useState([]);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [priorityFilter, setPriorityFilter] = useState("ALL");
+  const [onlyMine, setOnlyMine] = useState(false);
+
+  const filteredTasks = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    const currentUserName = currentUser?.displayName?.toLowerCase();
+
+    return tasks.filter((task) => {
+      const matchesSearch =
+        !normalizedSearch ||
+        task.title?.toLowerCase().includes(normalizedSearch) ||
+        task.description?.toLowerCase().includes(normalizedSearch) ||
+        task.assignee?.toLowerCase().includes(normalizedSearch) ||
+        task.reporter?.toLowerCase().includes(normalizedSearch);
+
+      const matchesStatus =
+        statusFilter === "ALL" || task.status === statusFilter;
+
+      const matchesPriority =
+        priorityFilter === "ALL" ||
+        (task.priority || "MEDIUM") === priorityFilter;
+
+      const matchesMine =
+        !onlyMine ||
+        (currentUserName &&
+          task.assignee?.toLowerCase() === currentUserName);
+
+      return matchesSearch && matchesStatus && matchesPriority && matchesMine;
+    });
+  }, [tasks, searchTerm, statusFilter, priorityFilter, onlyMine, currentUser]);
 
   useEffect(() => {
     async function initializeAuth() {
@@ -254,12 +288,27 @@ export default function App() {
               currentUser={currentUser}
             />
 
-            <KanbanBoard
-              tasks={tasks}
-              onUpdate={handleUpdateTask}
-              onDelete={handleDeleteTask}
-              loading={loading}
-            />
+            <div className="board-area">
+              <BoardControls
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                statusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
+                priorityFilter={priorityFilter}
+                onPriorityFilterChange={setPriorityFilter}
+                onlyMine={onlyMine}
+                onOnlyMineChange={setOnlyMine}
+                visibleCount={filteredTasks.length}
+                totalCount={tasks.length}
+              />
+
+              <KanbanBoard
+                tasks={filteredTasks}
+                onUpdate={handleUpdateTask}
+                onDelete={handleDeleteTask}
+                loading={loading}
+              />
+            </div>
           </div>
         </>
       )}

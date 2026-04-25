@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import KanbanBoard from "./components/KanbanBoard";
 import Header from "./components/Header";
 import LoginButton from "./components/LoginButton";
 import LogoutButton from "./components/LogoutButton";
 import TaskForm from "./components/TaskForm";
-import StatusMessage from "./components/StatusMessage";
+import KanbanBoard from "./components/KanbanBoard";
+import ToastContainer from "./components/ToastContainer";
 import { createTask, deleteTask, fetchTasks, updateTask } from "./services/api";
 import { exchangeCodeForToken } from "./services/auth";
 import {
@@ -16,14 +16,15 @@ import {
   removeToken,
   saveToken,
 } from "./utils/token";
+import { getUserFromToken } from "./utils/user";
 
 export default function App() {
   const [token, setToken] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [messageType, setMessageType] = useState("info");
   const [authLoading, setAuthLoading] = useState(true);
+  const [toasts, setToasts] = useState([]);
 
   useEffect(() => {
     async function initializeAuth() {
@@ -46,20 +47,34 @@ export default function App() {
 
           saveToken(idToken);
           setToken(idToken);
+          setCurrentUser(getUserFromToken(idToken));
           removeStoredCodeVerifier();
           clearAuthParamsFromUrl();
+
+          addToast({
+            type: "success",
+            title: "Signed in successfully",
+            message: "Your task board is ready.",
+          });
+
           return;
         }
 
         const storedToken = getStoredToken();
+
         if (storedToken) {
           setToken(storedToken);
+          setCurrentUser(getUserFromToken(storedToken));
         }
       } catch (error) {
         removeToken();
         removeStoredCodeVerifier();
-        setMessage(error.message);
-        setMessageType("error");
+
+        addToast({
+          type: "error",
+          title: "Authentication failed",
+          message: error.message,
+        });
       } finally {
         setAuthLoading(false);
       }
@@ -73,15 +88,42 @@ export default function App() {
     loadTasks();
   }, [token]);
 
+  function addToast({ type, title, message }) {
+    const id = crypto.randomUUID();
+
+    setToasts((currentToasts) => [
+      ...currentToasts,
+      {
+        id,
+        type,
+        title,
+        message,
+      },
+    ]);
+
+    window.setTimeout(() => {
+      removeToast(id);
+    }, 4500);
+  }
+
+  function removeToast(id) {
+    setToasts((currentToasts) =>
+      currentToasts.filter((toast) => toast.id !== id)
+    );
+  }
+
   async function loadTasks() {
     setLoading(true);
-    setMessage("");
 
     try {
       const data = await fetchTasks(token);
       setTasks(data.items || []);
     } catch (error) {
-      setMessage(error.message);
+      addToast({
+        type: "error",
+        title: "Failed to load tasks",
+        message: error.message,
+      });
 
       if (
         error.message.toLowerCase().includes("expired") ||
@@ -90,9 +132,8 @@ export default function App() {
       ) {
         removeToken();
         setToken(null);
+        setCurrentUser(null);
       }
-
-      setMessageType("error");
     } finally {
       setLoading(false);
     }
@@ -100,33 +141,23 @@ export default function App() {
 
   async function handleCreateTask(taskData) {
     setLoading(true);
-    setMessage("");
 
     try {
       await createTask(token, taskData);
-      setMessage("Task created successfully.");
-      setMessageType("success");
+
+      addToast({
+        type: "success",
+        title: "Task created",
+        message: `"${taskData.title}" was added to the board.`,
+      });
+
       await loadTasks();
     } catch (error) {
-      setMessage(error.message);
-      setMessageType("error");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleUpdateTask(taskId, updates) {
-    await updateTask(token, taskId, updates);
-    await loadTasks();
-
-    try {
-      await updateTask(token, taskId, updates);
-      setMessage("Task updated successfully.");
-      setMessageType("success");
-      await loadTasks();
-    } catch (error) {
-      setMessage(error.message);
-      setMessageType("error");
+      addToast({
+        type: "error",
+        title: "Task could not be created",
+        message: error.message,
+      });
     } finally {
       setLoading(false);
     }
@@ -134,33 +165,47 @@ export default function App() {
 
   async function handleDeleteTask(taskId) {
     setLoading(true);
-    setMessage("");
 
     try {
       await deleteTask(token, taskId);
-      setMessage("Task deleted successfully.");
-      setMessageType("success");
+
+      addToast({
+        type: "success",
+        title: "Task deleted",
+        message: "The task was removed from the board.",
+      });
+
       await loadTasks();
     } catch (error) {
-      setMessage(error.message);
-      setMessageType("error");
+      addToast({
+        type: "error",
+        title: "Task could not be deleted",
+        message: error.message,
+      });
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleStatusChange(taskId, updatedTask) {
+  async function handleUpdateTask(taskId, updates) {
     setLoading(true);
-    setMessage("");
 
     try {
-      await updateTask(token, taskId, updatedTask);
-      setMessage("Task updated successfully.");
-      setMessageType("success");
+      await updateTask(token, taskId, updates);
+
+      addToast({
+        type: "success",
+        title: "Task updated",
+        message: "The task was updated successfully.",
+      });
+
       await loadTasks();
     } catch (error) {
-      setMessage(error.message);
-      setMessageType("error");
+      addToast({
+        type: "error",
+        title: "Task could not be updated",
+        message: error.message,
+      });
     } finally {
       setLoading(false);
     }
@@ -170,7 +215,8 @@ export default function App() {
     return (
       <div className="app-container">
         <Header />
-        <StatusMessage message="Checking login status..." type="info" />
+        <p>Checking login status...</p>
+        <ToastContainer toasts={toasts} onRemove={removeToast} />
       </div>
     );
   }
@@ -178,6 +224,8 @@ export default function App() {
   return (
     <div className="app-container">
       <Header />
+
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
 
       {!token ? (
         <section className="auth-section">
@@ -187,13 +235,25 @@ export default function App() {
       ) : (
         <>
           <div className="top-actions">
+            {currentUser && (
+              <div className="current-user-pill">
+                <span className="current-user-avatar">
+                  {currentUser.displayName.charAt(0).toUpperCase()}
+                </span>
+                <span>{currentUser.displayName}</span>
+              </div>
+            )}
+
             <LogoutButton />
           </div>
 
-          <StatusMessage message={message} type={messageType} />
-
           <div className="dashboard-layout">
-            <TaskForm onCreate={handleCreateTask} loading={loading} />
+            <TaskForm
+              onCreate={handleCreateTask}
+              loading={loading}
+              currentUser={currentUser}
+            />
+
             <KanbanBoard
               tasks={tasks}
               onUpdate={handleUpdateTask}

@@ -7,7 +7,11 @@ export default function TaskCard({ task, onUpdate, onDelete, loading }) {
   const [description, setDescription] = useState(task.description || "");
   const [status, setStatus] = useState(task.status);
   const [assignee, setAssignee] = useState(task.assignee || "");
-  const [reporter, setReporter] = useState(task.reporter || "Me");
+  const [reporter, setReporter] = useState(
+    task.reporter || "Authenticated user"
+  );
+  const [priority, setPriority] = useState(task.priority || "MEDIUM");
+  const [dueDate, setDueDate] = useState(task.dueDate || "");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   function handleDragStart(event) {
@@ -27,6 +31,8 @@ export default function TaskCard({ task, onUpdate, onDelete, loading }) {
       status,
       assignee,
       reporter,
+      priority,
+      dueDate,
     });
 
     setIsEditing(false);
@@ -37,7 +43,9 @@ export default function TaskCard({ task, onUpdate, onDelete, loading }) {
     setDescription(task.description || "");
     setStatus(task.status);
     setAssignee(task.assignee || "");
-    setReporter(task.reporter || "Me");
+    setReporter(task.reporter || "Authenticated user");
+    setPriority(task.priority || "MEDIUM");
+    setDueDate(task.dueDate || "");
     setIsEditing(false);
   }
 
@@ -84,6 +92,29 @@ export default function TaskCard({ task, onUpdate, onDelete, loading }) {
             value={reporter}
             onChange={(event) => setReporter(event.target.value)}
             placeholder="Reporter"
+          />
+        </label>
+
+        <label>
+          Priority
+          <select
+            className="card-input"
+            value={priority}
+            onChange={(event) => setPriority(event.target.value)}
+          >
+            <option value="LOW">LOW</option>
+            <option value="MEDIUM">MEDIUM</option>
+            <option value="HIGH">HIGH</option>
+          </select>
+        </label>
+
+        <label>
+          Due date
+          <input
+            className="card-input"
+            type="date"
+            value={dueDate}
+            onChange={(event) => setDueDate(event.target.value)}
           />
         </label>
 
@@ -138,6 +169,14 @@ export default function TaskCard({ task, onUpdate, onDelete, loading }) {
 
         <p>{task.description || "No description provided."}</p>
 
+        <div className="task-badges">
+          <span className={`priority-badge ${normalizePriority(task.priority)}`}>
+            {task.priority || "MEDIUM"}
+          </span>
+
+          {task.dueDate && <span className="due-date-badge">Due {task.dueDate}</span>}
+        </div>
+
         <div className="jira-meta">
           <span>👤 Assignee: {task.assignee || "Unassigned"}</span>
           <span>📝 Reporter: {task.reporter || "Unknown"}</span>
@@ -186,4 +225,8 @@ function formatDate(value) {
   if (!value) return "N/A";
 
   return new Date(value).toLocaleString();
+}
+
+function normalizePriority(priority) {
+  return (priority || "MEDIUM").toLowerCase();
 }

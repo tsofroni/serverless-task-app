@@ -57,8 +57,11 @@ def parse_body(event):
 
 
 def validate_status(status):
-    allowed_statuses = {"OPEN", "IN_PROGRESS", "DONE"}
-    return status in allowed_statuses
+    return status in {"OPEN", "IN_PROGRESS", "DONE"}
+
+
+def validate_priority(priority):
+    return priority in {"LOW", "MEDIUM", "HIGH"}
 
 
 def validate_string_field(value, field_name, required=False):
@@ -78,7 +81,9 @@ def create_task(user_id, event):
     description = data.get("description", "")
     status = data.get("status", "OPEN")
     assignee = data.get("assignee", "")
-    reporter = data.get("reporter", "Me")
+    reporter = data.get("reporter", "Authenticated user")
+    priority = data.get("priority", "MEDIUM")
+    due_date = data.get("dueDate", "")
 
     for error in [
         validate_string_field(title, "title", required=True),
@@ -86,12 +91,17 @@ def create_task(user_id, event):
         validate_string_field(status, "status", required=True),
         validate_string_field(assignee, "assignee"),
         validate_string_field(reporter, "reporter"),
+        validate_string_field(priority, "priority", required=True),
+        validate_string_field(due_date, "dueDate"),
     ]:
         if error:
             return response(400, {"message": error})
 
     if not validate_status(status):
         return response(400, {"message": "status must be one of OPEN, IN_PROGRESS, DONE"})
+
+    if not validate_priority(priority):
+        return response(400, {"message": "priority must be one of LOW, MEDIUM, HIGH"})
 
     timestamp = now_iso()
     task_id = str(uuid.uuid4())
@@ -104,6 +114,8 @@ def create_task(user_id, event):
         "status": status,
         "assignee": assignee,
         "reporter": reporter,
+        "priority": priority,
+        "dueDate": due_date,
         "createdAt": timestamp,
         "updatedAt": timestamp,
     }
@@ -156,7 +168,9 @@ def update_task(user_id, task_id, event):
     description = data.get("description", existing.get("description", ""))
     status = data.get("status", existing.get("status", "OPEN"))
     assignee = data.get("assignee", existing.get("assignee", ""))
-    reporter = data.get("reporter", existing.get("reporter", "Me"))
+    reporter = data.get("reporter", existing.get("reporter", "Authenticated user"))
+    priority = data.get("priority", existing.get("priority", "MEDIUM"))
+    due_date = data.get("dueDate", existing.get("dueDate", ""))
 
     for error in [
         validate_string_field(title, "title", required=True),
@@ -164,12 +178,17 @@ def update_task(user_id, task_id, event):
         validate_string_field(status, "status", required=True),
         validate_string_field(assignee, "assignee"),
         validate_string_field(reporter, "reporter"),
+        validate_string_field(priority, "priority", required=True),
+        validate_string_field(due_date, "dueDate"),
     ]:
         if error:
             return response(400, {"message": error})
 
     if not validate_status(status):
         return response(400, {"message": "status must be one of OPEN, IN_PROGRESS, DONE"})
+
+    if not validate_priority(priority):
+        return response(400, {"message": "priority must be one of LOW, MEDIUM, HIGH"})
 
     updated_item = {
         "userId": user_id,
@@ -179,6 +198,8 @@ def update_task(user_id, task_id, event):
         "status": status,
         "assignee": assignee,
         "reporter": reporter,
+        "priority": priority,
+        "dueDate": due_date,
         "createdAt": existing["createdAt"],
         "updatedAt": now_iso(),
     }

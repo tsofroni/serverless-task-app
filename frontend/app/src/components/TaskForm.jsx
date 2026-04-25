@@ -1,11 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-export default function TaskForm({ onCreate, loading }) {
+export default function TaskForm({ onCreate, loading, currentUser }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState("OPEN");
   const [assignee, setAssignee] = useState("");
-  const [reporter, setReporter] = useState("Me");
+  const [reporter, setReporter] = useState(
+    currentUser?.displayName || "Authenticated user"
+  );
+  const [priority, setPriority] = useState("MEDIUM");
+  const [dueDate, setDueDate] = useState("");
+
+  useEffect(() => {
+    setReporter(currentUser?.displayName || "Authenticated user");
+  }, [currentUser]);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -16,13 +24,17 @@ export default function TaskForm({ onCreate, loading }) {
       status,
       assignee,
       reporter,
+      priority,
+      dueDate,
     });
 
     setTitle("");
     setDescription("");
     setStatus("OPEN");
     setAssignee("");
-    setReporter("Me");
+    setReporter(currentUser?.displayName || "Authenticated user");
+    setPriority("MEDIUM");
+    setDueDate("");
   }
 
   return (
@@ -61,11 +73,27 @@ export default function TaskForm({ onCreate, loading }) {
 
       <label>
         Reporter
+        <input type="text" value={reporter} readOnly />
+      </label>
+
+      <label>
+        Priority
+        <select
+          value={priority}
+          onChange={(event) => setPriority(event.target.value)}
+        >
+          <option value="LOW">LOW</option>
+          <option value="MEDIUM">MEDIUM</option>
+          <option value="HIGH">HIGH</option>
+        </select>
+      </label>
+
+      <label>
+        Due date
         <input
-          type="text"
-          value={reporter}
-          onChange={(event) => setReporter(event.target.value)}
-          placeholder="Reporter"
+          type="date"
+          value={dueDate}
+          onChange={(event) => setDueDate(event.target.value)}
         />
       </label>
 

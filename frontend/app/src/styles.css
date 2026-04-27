@@ -807,3 +807,63 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+
+.dashboard-layout.board-only {
+  display: block;
+}
+
+.create-task-modal {
+  width: min(720px, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  background: white;
+  border-radius: 22px;
+  padding: 1.5rem;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.35);
+  animation: modal-pop 0.18s ease-out;
+}
+
+.create-task-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.create-task-modal-header h2 {
+  margin: 0;
+}
+
+.create-task-modal-header p {
+  margin: 0.25rem 0 0;
+  color: #64748b;
+}
+
+.task-form-compact {
+  box-shadow: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+.task-form-compact .form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.task-form-compact label {
+  margin-bottom: 1rem;
+}
+
+.task-form-compact button[type="submit"] {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 720px) {
+  .task-form-compact .form-grid {
+    grid-template-columns: 1fr;
+  }
+}

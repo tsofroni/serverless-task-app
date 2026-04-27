@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import Header from "./components/Header";
 import LoginButton from "./components/LoginButton";
 import LogoutButton from "./components/LogoutButton";
-import TaskForm from "./components/TaskForm";
 import KanbanBoard from "./components/KanbanBoard";
 import ToastContainer from "./components/ToastContainer";
 import BoardControls from "./components/BoardControls";
+import CreateTaskModal from "./components/CreateTaskModal";
 import { createTask, deleteTask, fetchTasks, updateTask } from "./services/api";
 import { exchangeCodeForToken } from "./services/auth";
 import {
@@ -26,6 +26,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [toasts, setToasts] = useState([]);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -42,7 +43,10 @@ export default function App() {
         task.title?.toLowerCase().includes(normalizedSearch) ||
         task.description?.toLowerCase().includes(normalizedSearch) ||
         task.assignee?.toLowerCase().includes(normalizedSearch) ||
-        task.reporter?.toLowerCase().includes(normalizedSearch);
+        task.reporter?.toLowerCase().includes(normalizedSearch) ||
+        task.labels?.some((label) =>
+          label.toLowerCase().includes(normalizedSearch)
+        );
 
       const matchesStatus =
         statusFilter === "ALL" || task.status === statusFilter;
@@ -186,12 +190,15 @@ export default function App() {
       });
 
       await loadTasks();
+      return true;
     } catch (error) {
       addToast({
         type: "error",
         title: "Task could not be created",
         message: error.message,
       });
+
+      return false;
     } finally {
       setLoading(false);
     }
@@ -269,6 +276,14 @@ export default function App() {
       ) : (
         <>
           <div className="top-actions">
+            <button
+              className="button primary"
+              type="button"
+              onClick={() => setIsCreateModalOpen(true)}
+            >
+              Create Task
+            </button>
+
             {currentUser && (
               <div className="current-user-pill">
                 <span className="current-user-avatar">
@@ -281,13 +296,7 @@ export default function App() {
             <LogoutButton />
           </div>
 
-          <div className="dashboard-layout">
-            <TaskForm
-              onCreate={handleCreateTask}
-              loading={loading}
-              currentUser={currentUser}
-            />
-
+          <div className="dashboard-layout board-only">
             <div className="board-area">
               <BoardControls
                 searchTerm={searchTerm}
@@ -310,6 +319,14 @@ export default function App() {
               />
             </div>
           </div>
+
+          <CreateTaskModal
+            isOpen={isCreateModalOpen}
+            onClose={() => setIsCreateModalOpen(false)}
+            onCreate={handleCreateTask}
+            loading={loading}
+            currentUser={currentUser}
+          />
         </>
       )}
     </div>

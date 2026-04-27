@@ -276,14 +276,6 @@ export default function App() {
       ) : (
         <>
           <div className="top-actions">
-            <button
-              className="button primary"
-              type="button"
-              onClick={() => setIsCreateModalOpen(true)}
-            >
-              Create Task
-            </button>
-
             {currentUser && (
               <div className="current-user-pill">
                 <span className="current-user-avatar">
@@ -309,6 +301,7 @@ export default function App() {
                 onOnlyMineChange={setOnlyMine}
                 visibleCount={filteredTasks.length}
                 totalCount={tasks.length}
+                onCrateTask={() => setIsCreateModalOpen(true)}
               />
 
               <KanbanBoard

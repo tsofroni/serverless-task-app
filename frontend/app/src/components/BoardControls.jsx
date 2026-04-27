@@ -9,6 +9,7 @@ export default function BoardControls({
   onOnlyMineChange,
   visibleCount,
   totalCount,
+  onCreateTask,
 }) {
   return (
     <section className="board-controls">
@@ -19,6 +20,10 @@ export default function BoardControls({
             Showing {visibleCount} of {totalCount} tasks
           </p>
         </div>
+
+        <button className="button primary" type="button" onClick={onCreateTask}>
+          + Create Task
+        </button>
       </div>
 
       <div className="board-controls-grid">

@@ -63,6 +63,28 @@ User -> Cognito -> Token -> API Gateway -> Lambda -> DynamoDB
 
 (Screenshot: Architekturdiagramm oder AWS Services Übersicht)
 
+## 🏗️ High-Level Architecture
+
+Frontend:
+- React + Vite
+- Hosted on Amazon S3
+- Distributed via CloudFront
+
+Authentication:
+- Amazon Cognito User Pool
+- Hosted UI
+- OAuth 2.0 Authorization Code Flow
+
+Backend:
+- AWS Lambda
+- Amazon API Gateway
+
+Database:
+- Amazon DynamoDB
+
+CI/CD:
+- GitHub Actions
+
 ---
 
 ## ⚙️ Tech Stack
@@ -83,6 +105,47 @@ User -> Cognito -> Token -> API Gateway -> Lambda -> DynamoDB
 - Full CRUD operations for tasks
 - Per-user data isolation
 - Serverless architecture (no servers to manage)
+
+## 🔐 Security Features
+
+- OAuth 2.0 Authorization Code Flow
+- JWT validation
+- Cognito Hosted UI authentication
+- User-based task isolation
+- HTTPS delivery via CloudFront
+- CORS protection
+
+## 🚀 Recent Improvements
+
+The application evolved from a simple CRUD interface into a modern Jira-style serverless task board.
+
+### Frontend Improvements
+
+- Drag & Drop Kanban board
+- Task detail modal
+- Search & filtering
+- Priority labels
+- Due dates
+- Assignee & Reporter fields
+- Label/tag support
+- Hover animations & micro-interactions
+- Toast notifications inspired by AWS Console UX
+- Modern responsive UI
+
+### Authentication Improvements
+
+- Amazon Cognito Hosted UI
+- OAuth 2.0 Authorization Code Flow
+- Secure JWT authentication
+- Self-service user registration
+- Per-user task isolation
+
+### DevOps Improvements
+
+- Frontend CI/CD with GitHub Actions
+- Backend CI/CD with Lambda deployments
+- Automatic CloudFront invalidation
+- S3 static website hosting
 
 ---
 
@@ -153,8 +216,8 @@ frontend/
 ## 📈 Current Status
 
 ✅ Backend fully implemented and tested 
-⏳ Frontend in progress
-⏳ Deployment (S3 + CloudFront) planned
+✅ Frontend in progress
+✅ Deployment (S3 + CloudFront) planned
 ⏳ WAF integration planned
 
 ---
@@ -166,11 +229,31 @@ frontend/
 - Debugging API issues requires CloudWatch logs
 - Testing error scenarios is essential
 
+## 🧠 Key Lessons Learned
+
+During development several real-world cloud engineering issues were encountered and resolved:
+
+- OAuth redirect URI mismatches
+- HTTPS vs HTTP callback conflicts
+- API Gateway CORS configuration issues
+- CloudFront cache invalidation behavior
+- Lambda deployment/import issues
+- React production build debugging
+- CI/CD pipeline troubleshooting
+
+These issues significantly improved troubleshooting and AWS debugging skills.
+
 ---
 
-## 🔮 Next Steps
+## 🔮 Planned Features
 
-- Build frontend (React)
-- Integrate Cognito login UI
-- Deploy frontend via S3 + CloudFront
-- Add AWS WAF for security
+- Real multi-user collaboration
+- User directory service
+- Mentions (@username)
+- Notifications system
+- Activity history
+- Comments on tasks
+- File attachments
+- Terraform/IaC migration
+- Monitoring dashboards
+- Custom domain with ACM
